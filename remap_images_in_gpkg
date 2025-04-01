@@ -1,0 +1,31 @@
+import fiona
+import geopandas as gpd
+import os
+
+# Path to the source GeoPackage file
+source_path = "path/to/source.gpkg"
+
+# Path to the target (updated) GeoPackage file
+target_path = "path/to/updated.gpkg"
+
+# New base path for image file references
+local_prefix = "/new/base/path/for/images/"
+
+# List available layers in the GeoPackage
+layers = fiona.listlayers(source_path)
+print("Layers:", layers)
+
+# Load the desired layer (replace "Grid" with actual layer name if needed)
+gdf = gpd.read_file(source_path, layer="Grid")
+
+# Remap image_path column to use the new base path
+def remap_path(path):
+    filename = os.path.basename(path)
+    return os.path.join(local_prefix, filename)
+
+gdf["image_path"] = gdf["image_path"].apply(remap_path)
+
+# Save the modified layer to a new GeoPackage file
+gdf.to_file(target_path, layer="Grid", driver="GPKG")
+
+print("✅ Done: saved to", target_path)
